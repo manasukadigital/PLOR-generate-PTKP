@@ -1,0 +1,5 @@
+{
+  "name": " PLOR Audit Finding Generator Plus API Key Injection",
+  "description": "A tool to generate structured audit finding paragraphs based on the PLOR (Problem, Location, Object, Reference) pattern using AI.",
+  "requestFramePermissions": []
+}
