@@ -12,8 +12,75 @@ interface AuditReport {
   seniorNotes: string;
 }
 
-const App = () => {
-  const [apiKey, setApiKey] = useState('');
+const LandingPage = ({ onApiKeySubmit }: { onApiKeySubmit: (key: string) => void }) => {
+  const [localApiKey, setLocalApiKey] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (localApiKey.trim()) {
+      onApiKeySubmit(localApiKey.trim());
+    }
+  };
+
+  return (
+    <div className="landing-container">
+      <header className="hero">
+        <h1>Selamat Datang di AI-PLOR</h1>
+        <h2>Generator Temuan Audit PLOR Berbasis AI</h2>
+        <p className="subtitle">Ubah draf temuan audit Anda menjadi laporan profesional berstandar ISO 9001:2015 dalam hitungan detik. Cerdas, cepat, dan akurat.</p>
+      </header>
+
+      <section className="api-gate">
+        <h3>Masuk untuk Memulai</h3>
+        <p>AI-PLOR menggunakan kekuatan AI untuk mengubah draf menjadi laporan profesional. Masukkan API Key Anda untuk memulai.</p>
+        <form onSubmit={handleSubmit} className="api-key-form">
+          <input
+            type="password"
+            value={localApiKey}
+            onChange={(e) => setLocalApiKey(e.target.value)}
+            placeholder="Masukkan API Key Anda di sini"
+            aria-label="API Key"
+          />
+          <button type="submit" className="generate-button">Mulai Menggunakan AI-PLOR</button>
+        </form>
+      </section>
+
+      <section className="how-to-section">
+        <h3>Cara Mendapatkan API Key</h3>
+        <p className="api-key-security-note">API Key Anda disimpan dengan aman di browser Anda dan tidak pernah dikirim ke server kami.</p>
+        <ol className="steps-list">
+          <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</li>
+          <li>Login menggunakan Akun Google Anda jika diminta.</li>
+          <li>Klik tombol <strong>"Get API key"</strong>.</li>
+          <li>Pada jendela yang muncul, klik <strong>"Create API key in new project"</strong>.</li>
+          <li>Salin (copy) API Key yang baru saja dibuat.</li>
+          <li>Tempel (paste) API Key tersebut ke dalam kolom di atas dan klik "Mulai".</li>
+        </ol>
+      </section>
+
+      <section className="features">
+        <h3>Fitur Unggulan</h3>
+        <div className="features-grid">
+          <div className="feature-card">
+            <h4>Analisis AI Cerdas</h4>
+            <p>Mengklasifikasikan temuan (Mayor, Minor, Observasi) dan memilih klausul ISO yang relevan secara otomatis.</p>
+          </div>
+          <div className="feature-card">
+            <h4>Laporan Profesional</h4>
+            <p>Menghasilkan narasi PLOR yang koheren, analisis fakta, bukti, dampak, dan solusi yang terstruktur.</p>
+          </div>
+          <div className="feature-card">
+            <h4>Hemat Waktu & Tenaga</h4>
+            <p>Fokus pada proses audit, biarkan AI menangani penulisan laporan yang membosankan dan berulang.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+
+const AuditGenerator = ({ apiKey, onChangeApiKey }: { apiKey: string; onChangeApiKey: () => void }) => {
   const [problem, setProblem] = useState('');
   const [location, setLocation] = useState('');
   const [object, setObject] = useState('');
@@ -24,25 +91,7 @@ const App = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    const storedApiKey = localStorage.getItem('gemini-api-key');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-    }
-  }, []);
-
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newKey = e.target.value;
-    setApiKey(newKey);
-    localStorage.setItem('gemini-api-key', newKey);
-  };
-
   const handleGenerate = async () => {
-    if (!apiKey) {
-      setError('Harap masukkan Gemini API Key Anda.');
-      return;
-    }
-
     if (!problem || !location || !object || !reference) {
       setError('Harap isi semua kolom untuk menghasilkan temuan.');
       return;
@@ -104,12 +153,12 @@ Pastikan output adalah objek JSON yang valid sesuai dengan skema yang diminta, d
 
     } catch (err) {
       console.error(err);
-      setError('Terjadi kesalahan saat menghasilkan temuan. Pastikan API Key Anda valid. AI mungkin memberikan respons yang tidak valid. Silakan coba lagi.');
+      setError('Terjadi kesalahan. Pastikan API Key Anda valid dan coba lagi. AI mungkin memberikan respons yang tidak valid.');
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleCopy = () => {
     if (!auditReport) return;
     const reportText = `Jenis Temuan: ${auditReport.findingType}\n\n${auditReport.narrative}\n\n---\n\nFakta: ${auditReport.facts}\nBukti: ${auditReport.evidence}\nDampak: ${auditReport.impact}\nSolusi: ${auditReport.solution}\n\n---\n\nCatatan Asisten Temuan:\n${auditReport.seniorNotes}`;
@@ -119,27 +168,41 @@ Pastikan output adalah objek JSON yang valid sesuai dengan skema yang diminta, d
   };
 
   return (
-    <main>
-      <h1>Generator Temuan Audit (PLOR)</h1>
-      <p className="developer-credit">Developed By Dede Hery Suryana</p>
+    <div className="generator-container">
+      <div className="generator-header">
+        <h1>Generator Temuan Audit</h1>
+        <button onClick={onChangeApiKey} className="change-key-button">Ganti API Key</button>
+      </div>
       <p className="description">
         Masukkan detail temuan Anda pada kolom di bawah ini. Asisten Temuan akan membuat laporan audit yang komprehensif.
       </p>
 
-      <div className="form-group api-key-group">
-        <label htmlFor="api-key">Gemini API Key</label>
-        <input
-          id="api-key"
-          type="password"
-          value={apiKey}
-          onChange={handleApiKeyChange}
-          placeholder="Masukkan API Key Anda di sini"
-        />
-        <p className="api-key-description">
-          Dapatkan API Key Anda dari <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>. Kunci Anda disimpan di browser Anda.
-        </p>
+      <div className="instructions-section">
+          <h4>Langkah-Langkah Pengisian</h4>
+          <ol className="instructions-list">
+            <li>
+              <strong>Problem / Kondisi:</strong> 
+              Tuliskan ringkasan masalah atau ketidaksesuaian yang ditemukan secara <strong>umum</strong>. Ini adalah pernyataan tingkat tinggi tentang apa yang salah, atau gambaran besar dari kesenjangan antara kondisi aktual dan standar yang diharapkan. <br/>
+              <em>Contoh: "Prosedur persetujuan untuk permintaan pembelian tidak diikuti secara konsisten." atau "Ditemukan selisih stok antara catatan sistem dan fisik barang."</em>
+            </li>
+            <li>
+              <strong>Lokasi:</strong> 
+              Sebutkan secara spesifik di mana masalah ini ditemukan. Semakin detail lokasinya, semakin jelas ruang lingkup masalahnya. Ini bisa berupa lokasi fisik, digital, atau proses. <br/>
+              <em>Contoh Fisik: "Area Gudang Bahan Baku, Rak A5".<br/>Contoh Proses: "Proses rekrutmen karyawan baru".<br/>Contoh Digital: "Folder 'Arsip Kontrak 2023' di server bersama".</em>
+            </li>
+            <li>
+              <strong>Objek:</strong> 
+              Sebutkan secara <strong>rinci dan detail</strong> bukti-bukti spesifik yang mendukung 'Problem/Kondisi' yang umum tadi. Ini adalah data mentah temuan Anda yang tak terbantahkan. Cantumkan nomor dokumen, kode barang, atau data spesifik lainnya. <br/>
+              <em>Contoh (melanjutkan contoh di atas): "Formulir Permintaan Pembelian No. PO-23-001, PO-23-005, dan PO-23-009 tidak memiliki tanda tangan Manajer Departemen." atau "Hasil stock opname per 31 Oktober 2023 untuk produk A (SKU: XYZ-001) menunjukkan selisih 15 unit."</em>
+            </li>
+            <li>
+              <strong>Referensi yang Dilanggar:</strong> 
+              Tuliskan standar, prosedur, atau kriteria yang menjadi acuan audit. Ini adalah "aturan main" yang seharusnya diikuti tetapi tidak dipatuhi. Sebutkan nama dokumen, nomor, revisi, dan klausul atau poin yang relevan. <br/>
+              <em>Contoh: "SOP Pembelian Barang (SOP-PUR-01, Revisi 2, Poin 4.3) yang menyatakan bahwa setiap permintaan pembelian di atas Rp 1.000.000 harus disetujui oleh Manajer Departemen."</em>
+            </li>
+          </ol>
       </div>
-      
+
       <div className="form-grid">
         <div className="form-group">
           <label htmlFor="problem">Problem / Kondisi</label>
@@ -220,6 +283,38 @@ Pastikan output adalah objek JSON yang valid sesuai dengan skema yang diminta, d
             </div>
           </div>
         </div>
+      )}
+      <p className="developer-credit">Developed By Dede Hery Suryana</p>
+    </div>
+  );
+};
+
+const App = () => {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem('ai-plor-api-key');
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    }
+  }, []);
+
+  const handleApiKeySubmit = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('ai-plor-api-key', key);
+  };
+  
+  const handleChangeApiKey = () => {
+    setApiKey(null);
+    localStorage.removeItem('ai-plor-api-key');
+  };
+
+  return (
+    <main>
+      {apiKey ? (
+        <AuditGenerator apiKey={apiKey} onChangeApiKey={handleChangeApiKey} />
+      ) : (
+        <LandingPage onApiKeySubmit={handleApiKeySubmit} />
       )}
     </main>
   );

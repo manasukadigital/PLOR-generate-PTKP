@@ -1,5 +1,5 @@
 {
-  "name": " PLOR Audit Finding Generator Plus API Key Injection",
-  "description": "A tool to generate structured audit finding paragraphs based on the PLOR (Problem, Location, Object, Reference) pattern using AI.",
+  "name": "AI-PLOR: AI-Powered PLOR Audit Finding Generator",
+  "description": "A comprehensive landing page and tool that transforms PLOR (Problem, Location, Object, Reference) audit notes into professional, ISO 9001:2015 compliant reports using a powerful AI. Users provide an API key to access the generator.",
   "requestFramePermissions": []
 }
