@@ -123,7 +123,7 @@ const AuditGenerator = ({ apiKey, onChangeApiKey }: { apiKey: string; onChangeAp
 - **Problem/Kondisi:** ${problem}
 - **Lokasi:** ${location}
 - **Objek:** ${object}
-- **Referensi yang Dilanggar:** ${reference}
+- **Referensi yang Dilanggar (Internal):** ${reference}
 
 # Format Output
 Pastikan output adalah objek JSON yang valid sesuai dengan skema yang diminta, di mana setiap field adalah string teks yang lengkap dan profesional.`;
@@ -177,113 +177,143 @@ Pastikan output adalah objek JSON yang valid sesuai dengan skema yang diminta, d
         Masukkan detail temuan Anda pada kolom di bawah ini. Asisten Temuan akan membuat laporan audit yang komprehensif.
       </p>
 
-      <div className="instructions-section">
-          <h4>Langkah-Langkah Pengisian</h4>
-          <ol className="instructions-list">
-            <li>
-              <strong>Problem / Kondisi:</strong> 
-              Tuliskan ringkasan masalah atau ketidaksesuaian yang ditemukan secara <strong>umum</strong>. Ini adalah pernyataan tingkat tinggi tentang apa yang salah, atau gambaran besar dari kesenjangan antara kondisi aktual dan standar yang diharapkan. <br/>
-              <em>Contoh: "Prosedur persetujuan untuk permintaan pembelian tidak diikuti secara konsisten." atau "Ditemukan selisih stok antara catatan sistem dan fisik barang."</em>
-            </li>
-            <li>
-              <strong>Lokasi:</strong> 
-              Sebutkan secara spesifik di mana masalah ini ditemukan. Semakin detail lokasinya, semakin jelas ruang lingkup masalahnya. Ini bisa berupa lokasi fisik, digital, atau proses. <br/>
-              <em>Contoh Fisik: "Area Gudang Bahan Baku, Rak A5".<br/>Contoh Proses: "Proses rekrutmen karyawan baru".<br/>Contoh Digital: "Folder 'Arsip Kontrak 2023' di server bersama".</em>
-            </li>
-            <li>
-              <strong>Objek:</strong> 
-              Sebutkan secara <strong>rinci dan detail</strong> bukti-bukti spesifik yang mendukung 'Problem/Kondisi' yang umum tadi. Ini adalah data mentah temuan Anda yang tak terbantahkan. Cantumkan nomor dokumen, kode barang, atau data spesifik lainnya. <br/>
-              <em>Contoh (melanjutkan contoh di atas): "Formulir Permintaan Pembelian No. PO-23-001, PO-23-005, dan PO-23-009 tidak memiliki tanda tangan Manajer Departemen." atau "Hasil stock opname per 31 Oktober 2023 untuk produk A (SKU: XYZ-001) menunjukkan selisih 15 unit."</em>
-            </li>
-            <li>
-              <strong>Referensi yang Dilanggar:</strong> 
-              Tuliskan standar, prosedur, atau kriteria yang menjadi acuan audit. Ini adalah "aturan main" yang seharusnya diikuti tetapi tidak dipatuhi. Sebutkan nama dokumen, nomor, revisi, dan klausul atau poin yang relevan. <br/>
-              <em>Contoh: "SOP Pembelian Barang (SOP-PUR-01, Revisi 2, Poin 4.3) yang menyatakan bahwa setiap permintaan pembelian di atas Rp 1.000.000 harus disetujui oleh Manajer Departemen."</em>
-            </li>
-          </ol>
-      </div>
-
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="problem">Problem / Kondisi</label>
-          <textarea
-            id="problem"
-            value={problem}
-            onChange={(e) => setProblem(e.target.value)}
-            placeholder="Contoh: Ditemukan adanya selisih persediaan barang antara catatan pembukuan dengan hasil stock opname."
-            rows={4}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="location">Lokasi</label>
-          <textarea
-            id="location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Contoh: Gudang utama perusahaan di Jakarta Pusat."
-            rows={2}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="object">Objek</label>
-          <textarea
-            id="object"
-            value={object}
-            onChange={(e) => setObject(e.target.value)}
-            placeholder="Contoh: Persediaan barang jadi jenis produk A."
-            rows={2}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="reference">Referensi yang Dilanggar</label>
-          <textarea
-            id="reference"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            placeholder="Contoh: Prosedur Pengendalian Stok No. PRO-GUD-001, Revisi 2."
-            rows={3}
-          />
-        </div>
-      </div>
-
-      <button
-        className="generate-button"
-        onClick={handleGenerate}
-        disabled={loading}
-        aria-busy={loading}
-      >
-        {loading && <div className="spinner"></div>}
-        {loading ? 'Menghasilkan...' : 'Generate Temuan'}
-      </button>
-
-      {error && <p className="error-message">{error}</p>}
-
-      {auditReport && (
-        <div className="result-container" aria-live="polite">
-          <div className="result-header">
-            <h2>Laporan Temuan Audit</h2>
-            <button onClick={handleCopy} className={`copy-button ${copied ? 'copied' : ''}`}>
-              {copied ? 'Tersalin!' : 'Salin'}
-            </button>
-          </div>
-          <div className="report-content">
-            <p className="finding-type"><strong>Jenis Temuan:</strong> {auditReport.findingType}</p>
-            <p>{auditReport.narrative}</p>
-            <hr />
-            <div className="analysis-section">
-              <p><strong>Fakta:</strong> {auditReport.facts}</p>
-              <p><strong>Bukti:</strong> {auditReport.evidence}</p>
-              <p><strong>Dampak:</strong> {auditReport.impact}</p>
-              <p><strong>Solusi:</strong> {auditReport.solution}</p>
+      <div className="generator-layout">
+        <div className="input-column">
+          <div className="input-content-wrapper">
+            <div className="instructions-section">
+                <h4>Langkah-Langkah Pengisian</h4>
+                <ol className="instructions-list">
+                  <li>
+                    <strong>Problem / Kondisi:</strong> 
+                    Tuliskan ringkasan masalah atau ketidaksesuaian yang ditemukan secara <strong>umum</strong>. Ini adalah pernyataan tingkat tinggi tentang apa yang salah, atau gambaran besar dari kesenjangan antara kondisi aktual dan standar yang diharapkan. <br/>
+                    <em>Contoh: "Prosedur persetujuan untuk permintaan pembelian tidak diikuti secara konsisten." atau "Ditemukan selisih stok antara catatan sistem dan fisik barang."</em>
+                  </li>
+                  <li>
+                    <strong>Lokasi:</strong> 
+                    Sebutkan secara spesifik di mana masalah ini ditemukan. Semakin detail lokasinya, semakin jelas ruang lingkup masalahnya. Ini bisa berupa lokasi fisik, digital, atau proses. <br/>
+                    <em>Contoh Fisik: "Area Gudang Bahan Baku, Rak A5".<br/>Contoh Proses: "Proses rekrutmen karyawan baru".<br/>Contoh Digital: "Folder 'Arsip Kontrak 2023' di server bersama".</em>
+                  </li>
+                  <li>
+                    <strong>Objek:</strong> 
+                    Sebutkan secara <strong>rinci dan detail</strong> bukti-bukti spesifik yang mendukung 'Problem/Kondisi' yang umum tadi. Ini adalah data mentah temuan Anda yang tak terbantahkan. Cantumkan nomor dokumen, kode barang, atau data spesifik lainnya. <br/>
+                    <em>Contoh (melanjutkan contoh di atas): "Formulir Permintaan Pembelian No. PO-23-001, PO-23-005, dan PO-23-009 tidak memiliki tanda tangan Manajer Departemen." atau "Hasil stock opname per 31 Oktober 2023 untuk produk A (SKU: XYZ-001) menunjukkan selisih 15 unit."</em>
+                  </li>
+                  <li>
+                    <strong>Referensi yang Dilanggar (Internal):</strong> 
+                    Tuliskan standar, prosedur, atau kriteria yang menjadi acuan audit. Ini adalah "aturan main" yang seharusnya diikuti tetapi tidak dipatuhi. Sebutkan nama dokumen, nomor, revisi, dan klausul atau poin yang relevan. <br/>
+                    <em>Contoh: "SOP Pembelian Barang (SOP-PUR-01, Revisi 2, Poin 4.3) yang menyatakan bahwa setiap permintaan pembelian di atas Rp 1.000.000 harus disetujui oleh Manajer Departemen."</em>
+                  </li>
+                </ol>
             </div>
-            <hr />
-            <div className="notes-section">
-              <h3>Catatan Asisten Temuan</h3>
-              <p>{auditReport.seniorNotes}</p>
+            <div className="form-column">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="problem">Problem / Kondisi</label>
+                  <textarea
+                    id="problem"
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value)}
+                    placeholder="Contoh: Ditemukan adanya selisih persediaan barang antara catatan pembukuan dengan hasil stock opname."
+                    rows={4}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="location">Lokasi</label>
+                  <textarea
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Contoh: Gudang utama perusahaan di Jakarta Pusat."
+                    rows={2}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="object">Objek</label>
+                  <textarea
+                    id="object"
+                    value={object}
+                    onChange={(e) => setObject(e.target.value)}
+                    placeholder="Contoh: Formulir PO-23-001, PO-23-005, PO-23-009 tidak ada tanda tangan."
+                    rows={2}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="reference">Referensi yang Dilanggar (Internal)</label>
+                  <textarea
+                    id="reference"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    placeholder="Contoh: Prosedur Pengendalian Stok No. PRO-GUD-001, Revisi 2."
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <button
+                className="generate-button"
+                onClick={handleGenerate}
+                disabled={loading}
+                aria-busy={loading}
+              >
+                {loading ? 'Menghasilkan...' : 'Generate Temuan'}
+              </button>
             </div>
           </div>
+          
+          {error && <p className="error-message">{error}</p>}
         </div>
-      )}
+        
+        <div className="output-column">
+          <div className="output-sticky-wrapper">
+             {loading && (
+              <div className="result-container placeholder">
+                  <div className="spinner-container">
+                      <div className="spinner large"></div>
+                      <p>Sedang menganalisis dan membuat laporan...</p>
+                  </div>
+              </div>
+            )}
+            {!loading && auditReport && (
+              <div className="result-container" aria-live="polite">
+                <div className="result-header">
+                  <h2>Laporan Temuan Audit</h2>
+                  <button onClick={handleCopy} className={`copy-button ${copied ? 'copied' : ''}`}>
+                    {copied ? 'Tersalin!' : 'Salin'}
+                  </button>
+                </div>
+                <div className="report-content">
+                  <p className="finding-type"><strong>Jenis Temuan:</strong> {auditReport.findingType}</p>
+                  <p>{auditReport.narrative}</p>
+                  <hr />
+                  <div className="analysis-section">
+                    <p><strong>Fakta:</strong> {auditReport.facts}</p>
+                    <p><strong>Bukti:</strong> {auditReport.evidence}</p>
+                    <p><strong>Dampak:</strong> {auditReport.impact}</p>
+                    <p><strong>Solusi:</strong> {auditReport.solution}</p>
+                  </div>
+                  <hr />
+                  <div className="notes-section">
+                    <h3>Catatan Asisten Temuan</h3>
+                    <p>{auditReport.seniorNotes}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {!loading && !auditReport && (
+              <div className="result-container placeholder">
+                <div className="result-header">
+                  <h2>Laporan Temuan Audit</h2>
+                </div>
+                <div className="placeholder-content">
+                  <p>Hasil analisis AI akan muncul di sini.</p>
+                  <p>Isi formulir di sebelah kiri dan klik "Generate Temuan" untuk memulai.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <p className="developer-credit">Developed By Dede Hery Suryana</p>
     </div>
   );
